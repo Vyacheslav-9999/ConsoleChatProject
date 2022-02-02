@@ -3,11 +3,11 @@ import java.io.*;
 import java.net.Socket;
 
 public class ServerConnection extends Thread {
-    private String ip;
     private final Socket socket;
+    private final ConnectionsManager connectionsManager;
+    private String ip;
     private BufferedReader in;
     private PrintWriter out;
-    private final ConnectionsManager connectionsManager;
 
     ServerConnection(ConnectionsManager manager, Socket socket) {
         this.connectionsManager = manager;
