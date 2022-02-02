@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
+    public final static int PORT = 4005;
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -60,8 +61,9 @@ public class Client {
             input = scanner.nextLine();
             if (input.contains("-connect ")) {
                 String ip = input.split(" ")[1];
-                client.connect(ip, 4005);
-            } else if (input.equals("-disconnect")) client.disconnect();
+                client.connect(ip, PORT);
+            }
+            else if (input.equals("-disconnect")) client.disconnect();
             else client.send(input);
         }
         client.disconnect();
