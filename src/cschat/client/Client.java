@@ -1,0 +1,69 @@
+package cschat.client;
+import java.io.*;
+import java.net.Socket;
+import java.util.Scanner;
+
+public class Client {
+    private Socket socket;
+    private BufferedReader in;
+    private PrintWriter out;
+
+    private class MessagesReader extends Thread {
+        @Override
+        public void run() {
+            while (!socket.isClosed()) {
+                try {
+                    String message = in.readLine();
+                    System.out.println(message);
+                } catch (IOException e) {
+                    System.out.print("");
+                }
+            }
+        }
+    }
+
+    public void connect(String serverName, int port) {
+        if(socket != null && !socket.isClosed())disconnect();
+        try {
+            MessagesReader incomingMessagesReader = new MessagesReader();
+            socket = new Socket(serverName, port);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            incomingMessagesReader.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void disconnect() {
+        try {
+            send("-disconnect");
+            socket.close();
+            in.close();
+            out.close();
+            System.out.println("Disconnected from " + socket.getInetAddress());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void send(String message) {
+        out.println(message);
+    }
+
+    public static void main(String[] args) {
+        Client client = new Client();
+        Scanner scanner = new Scanner(System.in);
+        String input = "";
+
+        while (!input.equals("-exit")) {
+            input = scanner.nextLine();
+            if (input.contains("-connect ")) {
+                String ip = input.split(" ")[1];
+                client.connect(ip, 4005);
+            } else if (input.equals("-disconnect")) client.disconnect();
+            else client.send(input);
+        }
+        client.disconnect();
+    }
+}
