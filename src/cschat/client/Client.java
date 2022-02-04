@@ -1,6 +1,7 @@
 package cschat.client;
 import java.io.*;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Client {
@@ -26,11 +27,14 @@ public class Client {
     public void connect(String serverName, int port) {
         if(socket != null && !socket.isClosed())disconnect();
         try {
-            MessagesReader incomingMessagesReader = new MessagesReader();
             socket = new Socket(serverName, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+
+            MessagesReader incomingMessagesReader = new MessagesReader();
             incomingMessagesReader.start();
+        }catch (UnknownHostException e){
+            System.err.println("Wrong address." + e);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -62,6 +66,9 @@ public class Client {
             if (input.contains("-connect ")) {
                 String ip = input.split(" ")[1];
                 client.connect(ip, PORT);
+            }
+            else if (client.socket == null || client.socket.isClosed()){
+                System.out.println("wrong command");
             }
             else if (input.equals("-disconnect")) client.disconnect();
             else client.send(input);
