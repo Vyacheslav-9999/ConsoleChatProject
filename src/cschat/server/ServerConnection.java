@@ -5,7 +5,7 @@ import java.net.Socket;
 public class ServerConnection extends Thread {
     private final Socket socket;
     private final ConnectionsManager connectionsManager;
-    private String ip;
+    private String ip = null;
     private BufferedReader in;
     private PrintWriter out;
 
@@ -52,6 +52,9 @@ public class ServerConnection extends Thread {
     }
 
     public String getClientIp() {
+        while(ip == null){
+            System.out.println("ip isn't set yet");
+        }
         return ip;
     }
 

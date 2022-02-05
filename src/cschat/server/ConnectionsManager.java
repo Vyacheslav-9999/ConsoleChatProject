@@ -3,11 +3,10 @@ package cschat.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 class ConnectionsManager {
-    private final LinkedList<ServerConnection> connections = new LinkedList<>();
+    private final ConcurrentHashMap<String,ServerConnection> connections = new ConcurrentHashMap<>();
     private final ServerSocket socket;
 
     ConnectionsManager(ServerSocket serverSocket) {
@@ -20,8 +19,8 @@ class ConnectionsManager {
                     while (!socket.isClosed())try {
                         Socket socket = this.socket.accept();
                         ServerConnection connection = new ServerConnection(this, socket);
-                        connections.add(connection);
                         connection.start();
+                        connections.put(connection.getClientIp(),connection);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -38,32 +37,25 @@ class ConnectionsManager {
     }
 
     private void stopConnection(String ipOfClient){
-        for(ServerConnection sc:connections){
-            if(Objects.equals(sc.getClientIp(), ipOfClient)){
-                sc.close();
-                connections.remove(sc);
-            }
-        }
+        ServerConnection connection = connections.get(ipOfClient);
+        connection.close();
+        connections.remove(ipOfClient);
     }
 
     public void sendEveryone(String message){
         System.out.println(message);
-        for (ServerConnection i : connections) {
-            i.send(message);
+        for (ServerConnection connection : connections.values()) {
+            connection.send(message);
         }
     }
 
     public void sendTo(String message, String destinationIp){
-        for (ServerConnection connection : connections){
-            if(connection.getClientIp().equals(destinationIp)){
-                connection.send(message);
-            }
-        }
+        connections.get(destinationIp).send(message);
     }
 
     private void shutdown() {
-        for (ServerConnection i : connections) {
-            i.close();
+        for (ServerConnection connection : connections.values()) {
+            connection.close();
         }
     }
 }
