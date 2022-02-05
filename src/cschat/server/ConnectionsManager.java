@@ -40,6 +40,7 @@ class ConnectionsManager {
         ServerConnection connection = connections.get(ipOfClient);
         connection.close();
         connections.remove(ipOfClient);
+        if(connections.isEmpty())this.shutdown();
     }
 
     public void sendEveryone(String message){
@@ -56,6 +57,11 @@ class ConnectionsManager {
     private void shutdown() {
         for (ServerConnection connection : connections.values()) {
             connection.close();
+        }
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.out.println("Server is off");
         }
     }
 }
