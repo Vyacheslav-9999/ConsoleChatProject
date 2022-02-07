@@ -1,15 +1,18 @@
 package cschat.client;
 
+import java.io.IOException;
 import java.util.Scanner;
 
-public class ClientConnectionsManager {
-    Client client = new Client();
+public class ClientConsoleReader extends Thread{
+    Client client;
+    ClientConsoleReader(Client client){
+        this.client = client;
+    }
 
-    public static void main(String[] args) {
-        ClientConnectionsManager manager = new ClientConnectionsManager();
+    @Override
+    public void run() {
         Scanner scanner = new Scanner(System.in);
         String input = "";
-
         while (!input.equals(Client.EXIT)) {
             input = scanner.nextLine();
             if (input.contains(Client.CONNECT)) {

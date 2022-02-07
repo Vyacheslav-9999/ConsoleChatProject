@@ -1,4 +1,5 @@
 package cschat.client;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -12,9 +13,21 @@ public class Client {
     private BufferedReader in;
     private PrintWriter out;
 
-    private class MessagesReader extends Thread {
-        @Override
-        public void run() {
+    public void connect(String serverName){
+        if (socket != null && !socket.isClosed()) disconnect();
+        try {
+            socket = new Socket(serverName, PORT);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            startReadingMessagesFromServer();
+        } catch (UnknownHostException e) {
+            System.err.println("Wrong address." + e);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void startReadingMessagesFromServer() {
+        new Thread(() -> {
             while (!socket.isClosed()) {
                 try {
                     String message = in.readLine();
@@ -23,26 +36,10 @@ public class Client {
                     System.out.print("");
                 }
             }
-        }
+        }).start();
     }
 
-    public void connect(String serverName) {
-        if(socket != null && !socket.isClosed())disconnect();
-        try {
-            socket = new Socket(serverName, PORT);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-
-            MessagesReader incomingMessagesReader = new MessagesReader();
-            incomingMessagesReader.start();
-        }catch (UnknownHostException e){
-            System.err.println("Wrong address." + e);
-        } catch (IOException e) {
-            System.err.println(e);
-        }
-    }
-
-    private void disconnect() {
+    public void disconnect() {
         try {
             send(DISCONNECT);
             socket.close();
@@ -58,8 +55,13 @@ public class Client {
         out.println(message);
     }
 
+    public boolean isClosed(){
+        return socket.isClosed();
+    }
+
     public static void main(String[] args) {
         Client client = new Client();
-        client.start();
+        ClientConsoleReader reader = new ClientConsoleReader(client);
+        reader.start();
     }
 }
