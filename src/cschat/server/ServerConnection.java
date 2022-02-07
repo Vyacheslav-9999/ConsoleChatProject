@@ -4,12 +4,12 @@ import java.net.Socket;
 
 public class ServerConnection extends Thread {
     private final Socket socket;
-    private final ConnectionsManager connectionsManager;
+    private final ServerConnectionsManager connectionsManager;
     private String ip = null;
     private BufferedReader in;
     private PrintWriter out;
 
-    ServerConnection(ConnectionsManager manager, Socket socket) {
+    ServerConnection(ServerConnectionsManager manager, Socket socket) {
         this.connectionsManager = manager;
         this.socket = socket;
     }
@@ -48,7 +48,7 @@ public class ServerConnection extends Thread {
         }
     }
     public void giveMessageToManager(String incoming){
-        connectionsManager.process(incoming,ip);
+        connectionsManager.processIncomingFromClient(incoming,ip);
     }
 
     public String getClientIp() {

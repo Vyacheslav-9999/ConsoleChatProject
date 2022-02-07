@@ -1,18 +1,33 @@
 package cschat.client;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 
 public class Client {
     public final static int PORT = 4005;
+    public final static String EXIT = "-exit";
+    public final static String CONNECT = "-connect ";
+    public final static String DISCONNECT = "-disconnect";
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
 
-    private class MessagesReader extends Thread {
-        @Override
-        public void run() {
+    public void connect(String serverName){
+        if (socket != null && !socket.isClosed()) disconnect();
+        try {
+            socket = new Socket(serverName, PORT);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            startReadingMessagesFromServer();
+        } catch (UnknownHostException e) {
+            System.err.println("Wrong address." + e);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void startReadingMessagesFromServer() {
+        new Thread(() -> {
             while (!socket.isClosed()) {
                 try {
                     String message = in.readLine();
@@ -21,28 +36,12 @@ public class Client {
                     System.out.print("");
                 }
             }
-        }
+        }).start();
     }
 
-    public void connect(String serverName, int port) {
-        if(socket != null && !socket.isClosed())disconnect();
+    public void disconnect() {
         try {
-            socket = new Socket(serverName, port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-
-            MessagesReader incomingMessagesReader = new MessagesReader();
-            incomingMessagesReader.start();
-        }catch (UnknownHostException e){
-            System.err.println("Wrong address." + e);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void disconnect() {
-        try {
-            send("-disconnect");
+            send(DISCONNECT);
             socket.close();
             in.close();
             out.close();
@@ -56,23 +55,13 @@ public class Client {
         out.println(message);
     }
 
+    public boolean isClosed(){
+        return socket.isClosed();
+    }
+
     public static void main(String[] args) {
         Client client = new Client();
-        Scanner scanner = new Scanner(System.in);
-        String input = "";
-
-        while (!input.equals("-exit")) {
-            input = scanner.nextLine();
-            if (input.contains("-connect ")) {
-                String ip = input.split(" ")[1];
-                client.connect(ip, PORT);
-            }
-            else if (client.socket == null || client.socket.isClosed()){
-                System.out.println("wrong command");
-            }
-            else if (input.equals("-disconnect")) client.disconnect();
-            else client.send(input);
-        }
-        client.disconnect();
+        ClientConsoleReader reader = new ClientConsoleReader(client);
+        reader.start();
     }
 }
