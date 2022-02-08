@@ -11,6 +11,12 @@ public class Server extends Thread{
             serverSocket = new ServerSocket(Server.PORT);
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         ServerConnectionsManager manager = new ServerConnectionsManager(serverSocket);
         manager.start();

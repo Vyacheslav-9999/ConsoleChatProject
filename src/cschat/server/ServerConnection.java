@@ -1,4 +1,5 @@
 package cschat.server;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -35,24 +36,26 @@ public class ServerConnection extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        while (!socket.isClosed()) {
-            try {
+        try {
+            while (!socket.isClosed()) {
                 String incoming = in.readLine();
-                if(incoming != null) {
+                if (incoming != null) {
                     giveMessageToManager(incoming);
                 }
-            } catch (IOException e) {
-                if(!socket.isClosed())e.printStackTrace();
-                close();
             }
+        } catch (IOException e) {
+            if (!socket.isClosed()) e.printStackTrace();
+        }finally {
+            close();
         }
     }
-    public void giveMessageToManager(String incoming){
-        connectionsManager.processIncomingFromClient(incoming,ip);
+
+    public void giveMessageToManager(String incoming) {
+        connectionsManager.processIncomingFromClient(incoming, ip);
     }
 
     public String getClientIp() {
-        while(ip == null){
+        while (ip == null) {
             System.out.println("ip isn't set yet");
         }
         return ip;

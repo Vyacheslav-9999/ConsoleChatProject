@@ -1,6 +1,5 @@
 package cschat.client;
 
-import java.io.IOException;
 import java.util.Scanner;
 
 public class ClientConsoleReader extends Thread{

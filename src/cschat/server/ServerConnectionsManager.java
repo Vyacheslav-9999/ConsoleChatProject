@@ -22,6 +22,8 @@ class ServerConnectionsManager extends Thread {
             connections.put(connection.getClientIp(), connection);
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            shutdown();
         }
     }
 
